@@ -1,68 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class Student {
-  int id; 
-  String name;
-  int age;
-  String gender;
-  int course;
-  String group;
-
-  Student({
-    required this.id,
-    required this.name,
-    required this.age,
-    required this.gender,
-    required this.course,
-    required this.group,
-  });
-
-  factory Student.fromJson(Map<String, dynamic> json) {
-    return Student(
-      id: json['id'], 
-      name: json['name'],
-      age: json['age'],
-      gender: json['gender'],
-      course: json['course'],
-      group: json['group'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id, 
-      'name': name,
-      'age': age,
-      'gender': gender,
-      'course': course,
-      'group': group,
-    };
-  }
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Студенты',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue),
-      ),
-      home: const LoginPage(),
-    );
-  }
-}
+import 'student_model.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key});
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -121,7 +63,7 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         ElevatedButton(
                           onPressed: () {
-                            _showEditStudentDialog(context, students[index], index); 
+                            _showEditStudentDialog(context, students[index], index);
                           },
                           child: const Text('Изменить'),
                         ),
@@ -158,8 +100,8 @@ class _HomePageState extends State<HomePage> {
       body: jsonEncode(student.toJson()),
     );
 
-    if (response.statusCode == 200) {
-      fetchStudents(); 
+    if (response.statusCode == 201) {
+      fetchStudents();
     } else {
       throw Exception('Ошибка добавления студента');
     }
@@ -175,7 +117,7 @@ class _HomePageState extends State<HomePage> {
     );
 
     if (response.statusCode == 200) {
-      fetchStudents(); 
+      fetchStudents();
     } else {
       throw Exception('Ошибка изменения студента');
     }
@@ -187,13 +129,13 @@ class _HomePageState extends State<HomePage> {
     );
 
     if (response.statusCode == 200) {
-      fetchStudents(); 
+      fetchStudents();
     } else {
       throw Exception('Ошибка удаления студента');
     }
   }
 
-  void _showAddStudentDialog(BuildContext context) async {
+ void _showAddStudentDialog(BuildContext context) async {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController ageController = TextEditingController();
     final TextEditingController genderController = TextEditingController();
@@ -380,237 +322,3 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({Key? key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Войти'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: LoginForm(),
-      ),
-    );
-  }
-}
-
-class LoginForm extends StatefulWidget {
-  const LoginForm({Key? key});
-
-  @override
-  _LoginFormState createState() => _LoginFormState();
-}
-
-class _LoginFormState extends State<LoginForm> {
-  final _formKey = GlobalKey<FormState>();
-  TextEditingController _usernameController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
-
-  Future<void> _login(String username, String password) async {
-    final url = Uri.parse('https://воображаемый_сервак.com/api/login');
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'username': username, 'password': password}),
-    );
-
-    if (response.statusCode == 200) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
-    } else {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Ошибка входа'),
-            content: const Text('Неверное имя пользователя или пароль.'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          TextFormField(
-            controller: _usernameController,
-            decoration: const InputDecoration(labelText: 'Логин'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Введите имя пользователя';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 20.0),
-          TextFormField(
-            controller: _passwordController,
-            decoration: const InputDecoration(labelText: 'Пароль'),
-            obscureText: true,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Введите пароль';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 20.0),
-          ElevatedButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                String username = _usernameController.text;
-                String password = _passwordController.text;
-                _login(username, password);
-              }
-            },
-            child: const Text('Вход'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class RegistrationPage extends StatelessWidget {
-  const RegistrationPage({Key? key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Регистрация'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: RegistrationForm(),
-      ),
-    );
-  }
-}
-
-class RegistrationForm extends StatefulWidget {
-  const RegistrationForm({Key? key});
-
-  @override
-  _RegistrationFormState createState() => _RegistrationFormState();
-}
-
-class _RegistrationFormState extends State<RegistrationForm> {
-  final _formKey = GlobalKey<FormState>();
-  TextEditingController _usernameController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
-
-  Future<void> _register(String username, String password) async {
-    final url = Uri.parse('https://воображаемый_сервак.com/api/register');
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'username': username, 'password': password}),
-    );
-
- if (response.statusCode == 200) {
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(builder: (context) => const HomePage()),
-  );
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Успешная регистрация'),
-        content: const Text('Пользователь успешно зарегистрирован.'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      );
-    },
-  );
-} else {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Ошибка регистрации'),
-        content: const Text('Не удалось зарегистрировать пользователя.'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      );
-    },
-  );
-}
-}
-
-  @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          TextFormField(
-            controller: _usernameController,
-            decoration: const InputDecoration(labelText: 'Имя пользователя'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Введите имя пользователя';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 20.0),
-          TextFormField(
-            controller: _passwordController,
-            decoration: const InputDecoration(labelText: 'Пароль'),
-            obscureText: true,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Введите пароль';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 20.0),
-          ElevatedButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                String username = _usernameController.text;
-                String password = _passwordController.text;
-                _register(username, password);
-              }
-            },
-            child: const Text('Регистрация'),
-          ),
-        ],
-      ),
-    );
-  }
-}
